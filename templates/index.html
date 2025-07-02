@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Pokémon Textures</title>
+  <style>
+    .thumbnail {
+      height: 50px;
+      margin-left: 10px;
+      vertical-align: middle;
+      transition: transform 0.2s ease;
+    }
+    .thumbnail:hover {
+      transform: scale(2.5);
+      z-index: 10;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select Pokémon Textures to Include</h1>
+
+  <form action="/download" method="post">
+    {% for category_display, files in file_map.items() %}
+      <h2>{{ category_display }}</h2>
+      {% for file in files %}
+        <div>
+          <label>
+            <input type="checkbox" name="files" value="{{ file.folder }}/{{ file.filename }}">
+            {{ file.display_name }}
+          </label>
+          <img class="thumbnail"
+               src="{{ url_for('static', filename='thumbnails/' + file.folder + '/' + file.filename) }}"
+               onerror="this.onerror=null;this.src='{{ url_for('static', filename='files/' + file.folder + '/' + file.filename) }}';"
+               alt="thumbnail">
+        </div>
+      {% endfor %}
+    {% endfor %}
+    <br>
+    <button type="submit">Download "Better Shinies" ZIP</button>
+  </form>
+</body>
+</html>
