@@ -74,23 +74,31 @@ def download():
     with zipfile.ZipFile(memory, 'w', zipfile.ZIP_DEFLATED) as zf:
         for item in selected:
             cat, fn = item.split('/', 1)
-            src = os.path.join(FILES_DIR, cat, fn)
+            folder_path = os.path.join(FILES_DIR, cat)
+            src = os.path.join(folder_path, fn)
+
+            # Base file renaming
             m = re.match(r'(\w+)_([\w]+)_(\d+)\.png$', fn)
-            new_fn = f"{m.group(1)}_{m.group(2)}.png" if m else fn
+            if m:
+                new_fn = f"{m.group(1)}_{m.group(2)}.png"
+            else:
+                new_fn = fn
+
             arc = os.path.join("assets/cobblemon/textures/pokemon", cat, new_fn)
 
             if os.path.isfile(src):
                 zf.write(src, arcname=arc)
 
-            # Try to find an extended version of the file
+            # Add extended file if it exists
             if m:
-                extended_pattern = f"{m.group(1)}_{m.group(2)}_*_{m.group(3)}.png"
-                folder_path = os.path.join(FILES_DIR, cat)
+                base_1, base_2, number = m.group(1), m.group(2), m.group(3)
                 for ext_file in os.listdir(folder_path):
-                    if re.fullmatch(extended_pattern.replace("*", r"\w+"), ext_file):
+                    m_ext = re.match(rf'^{base_1}_{base_2}_(\w+?)_{number}\.png$', ext_file)
+                    if m_ext:
                         ext_src = os.path.join(folder_path, ext_file)
-                        ext_fn = ext_file  # Keep original name for now
-                        ext_arc = os.path.join("assets/cobblemon/textures/pokemon", cat, ext_fn)
+                        # Strip number from extended filename: keep thing1_thing2_thing3
+                        new_ext_fn = f"{base_1}_{base_2}_{m_ext.group(1)}.png"
+                        ext_arc = os.path.join("assets/cobblemon/textures/pokemon", cat, new_ext_fn)
                         if os.path.isfile(ext_src):
                             zf.write(ext_src, arcname=ext_arc)
 
@@ -104,6 +112,7 @@ def download():
 
     memory.seek(0)
     return send_file(memory, download_name="Better Shinies.zip", as_attachment=True, mimetype='application/zip')
+
 
 
 if __name__ == '__main__':
